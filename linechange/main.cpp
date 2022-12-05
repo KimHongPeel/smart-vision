@@ -39,12 +39,12 @@ int main()
     }
     fp.close();
     auto net = cv::dnn::readNetFromDarknet("kim.cfg", "kim_final.weights");
-    net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA); //¼±È£Å¸Å¶ ¹é¿£µå ¼³Á¤
-    net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA); //¼±È£Å¸Å¶ µğ¹ÙÀÌ½º ¼³Á¤
-    auto output_names = net.getUnconnectedOutLayersNames(); //Ãâ·Â ·¹ÀÌ¾î ÀÌ¸§
+    net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA); //ì„ í˜¸íƒ€í‚· ë°±ì—”ë“œ ì„¤ì •
+    net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA); //ì„ í˜¸íƒ€í‚· ë””ë°”ì´ìŠ¤ ì„¤ì •
+    auto output_names = net.getUnconnectedOutLayersNames(); //ì¶œë ¥ ë ˆì´ì–´ ì´ë¦„
 
-    //dxl_open();//´ÙÀÌ³ª¹Í¼¿ °ü·Ã ¼³Á¤À» ÇÏ±âÀ§ÇÑ ÇÔ¼ö È£Ãâ
-    VideoCapture cap(src, CAP_GSTREAMER);//Ä·À¸·ÎºÎÅÍ ¿µ»ó ¹Ş¾Æ¿È ->gstreamerÀÌ¿ë
+    dxl_open();//ë‹¤ì´ë‚˜ë¯¹ì…€ ê´€ë ¨ ì„¤ì •ì„ í•˜ê¸°ìœ„í•œ í•¨ìˆ˜ í˜¸ì¶œ
+    VideoCapture cap(src, CAP_GSTREAMER);//ìº ìœ¼ë¡œë¶€í„° ì˜ìƒ ë°›ì•„ì˜´ ->gstreamerì´ìš©
     if (!cap.isOpened())
     {
         cerr << "Camera open failed!" << endl;
@@ -69,54 +69,54 @@ int main()
             break;
         }
 
-        cv::dnn::blobFromImage(frame, blob, 1 / 255.f, cv::Size(224, 224), cv::Scalar(), true, false, CV_32F); //¿µ»ó ÇÑÇÁ·¹ÀÓÀ¸·ÎºÎÅÍ 4Â÷¿ø ºí·Ó°´Ã¼ »ı¼º ÈÄ ¹İÈ¯
-        net.setInput(blob); //³×Æ®¿öÅ© ÀÔ·Â ¼³Á¤
-        net.forward(detections, output_names); //³×Æ®¿öÅ© ¼ø¹æÇâ ½ÇÇà(Ãß·Ğ)
+        cv::dnn::blobFromImage(frame, blob, 1 / 255.f, cv::Size(224, 224), cv::Scalar(), true, false, CV_32F); //ì˜ìƒ í•œí”„ë ˆì„ìœ¼ë¡œë¶€í„° 4ì°¨ì› ë¸”ë¡­ê°ì²´ ìƒì„± í›„ ë°˜í™˜
+        net.setInput(blob); //ë„¤íŠ¸ì›Œí¬ ì…ë ¥ ì„¤ì •
+        net.forward(detections, output_names); //ë„¤íŠ¸ì›Œí¬ ìˆœë°©í–¥ ì‹¤í–‰(ì¶”ë¡ )
 
-        std::vector<int> indices[NUM_CLASSES]; //°´Ã¼ °³¼ö¸¦ ÀúÀåÇÒ vecotr ¹è¿­
-        std::vector<cv::Rect> boxes[NUM_CLASSES]; //°´Ã¼ÀÇ ¹Ù¿îµù ¹Ú½º¸¦ ÀúÀåÇÒ vector ¹è¿­
-        std::vector<float> scores[NUM_CLASSES]; //°´Ã¼ ¿¹Ãø È®·üÀ» ÀúÀåÇÒ vector ¹è¿­
+        std::vector<int> indices[NUM_CLASSES]; //ê°ì²´ ê°œìˆ˜ë¥¼ ì €ì¥í•  vecotr ë°°ì—´
+        std::vector<cv::Rect> boxes[NUM_CLASSES]; //ê°ì²´ì˜ ë°”ìš´ë”© ë°•ìŠ¤ë¥¼ ì €ì¥í•  vector ë°°ì—´
+        std::vector<float> scores[NUM_CLASSES]; //ê°ì²´ ì˜ˆì¸¡ í™•ë¥ ì„ ì €ì¥í•  vector ë°°ì—´
 
-        for (auto& output : detections) //Ãâ·Â ·¹ÀÌ¾î¿¡ µû¶ó ¹İº¹
+        for (auto& output : detections) //ì¶œë ¥ ë ˆì´ì–´ì— ë”°ë¼ ë°˜ë³µ
         {
-            const auto num_boxes = output.rows; //°ËÃâ °´Ã¼ °³¼ö ÀúÀå
-            for (int i = 0; i < num_boxes; i++) //¹İº¹¹®
+            const auto num_boxes = output.rows; //ê²€ì¶œ ê°ì²´ ê°œìˆ˜ ì €ì¥
+            for (int i = 0; i < num_boxes; i++) //ë°˜ë³µë¬¸
             {
-                auto x = output.at<float>(i, 0) * frame.cols; //°ËÃâ °´Ã¼ ¿µ¿ª Áß½É xÁÂÇ¥ ÀúÀå
-                auto y = output.at<float>(i, 1) * frame.rows; //°ËÃâ °´Ã¼ ¿µ¿ª Áß½É xÁÂÇ¥ ÀúÀå
-                auto width = output.at<float>(i, 2) * frame.cols; //°ËÃâ °´Ã¼ ¹Ù¿îµù ¹Ú½º Æø ÀúÀå
-                auto height = output.at<float>(i, 3) * frame.rows; //°ËÃâ °´Ã¼ ¹Ù¿îµù ¹Ú½º ³ôÀÌ ÀúÀå
-                cv::Rect rect(x - width / 2, y - height / 2, width, height); //°ËÃâ °´Ã¼ ¿µ¿ª »ç°¢Çü »ı¼º
-                for (int c = 0; c < NUM_CLASSES; c++) //Å¬·¡½º °¹¼ö¸¸Å­ ¹İº¹
+                auto x = output.at<float>(i, 0) * frame.cols; //ê²€ì¶œ ê°ì²´ ì˜ì—­ ì¤‘ì‹¬ xì¢Œí‘œ ì €ì¥
+                auto y = output.at<float>(i, 1) * frame.rows; //ê²€ì¶œ ê°ì²´ ì˜ì—­ ì¤‘ì‹¬ xì¢Œí‘œ ì €ì¥
+                auto width = output.at<float>(i, 2) * frame.cols; //ê²€ì¶œ ê°ì²´ ë°”ìš´ë”© ë°•ìŠ¤ í­ ì €ì¥
+                auto height = output.at<float>(i, 3) * frame.rows; //ê²€ì¶œ ê°ì²´ ë°”ìš´ë”© ë°•ìŠ¤ ë†’ì´ ì €ì¥
+                cv::Rect rect(x - width / 2, y - height / 2, width, height); //ê²€ì¶œ ê°ì²´ ì˜ì—­ ì‚¬ê°í˜• ìƒì„±
+                for (int c = 0; c < NUM_CLASSES; c++) //í´ë˜ìŠ¤ ê°¯ìˆ˜ë§Œí¼ ë°˜ë³µ
                 {
-                    auto confidence = *output.ptr<float>(i, 5 + c); //°ËÃâ È®·ü ÀúÀå
-                    if (confidence >= CONFIDENCE_THRESHOLD && rect.area() <= 4000) //ÁöÁ¤ÇØ³õÀº ÀÓ°è°ª(0.9)º¸´Ù Å©¸é
+                    auto confidence = *output.ptr<float>(i, 5 + c); //ê²€ì¶œ í™•ë¥  ì €ì¥
+                    if (confidence >= CONFIDENCE_THRESHOLD && rect.area() <= 4000) //ì§€ì •í•´ë†“ì€ ì„ê³„ê°’(0.9)ë³´ë‹¤ í¬ë©´
                     {
-                        boxes[c].push_back(rect); //¹Ù¿îµù ¹Ú½º ÀúÀå
-                        scores[c].push_back(confidence); //È®·ü ÀúÀå
+                        boxes[c].push_back(rect); //ë°”ìš´ë”© ë°•ìŠ¤ ì €ì¥
+                        scores[c].push_back(confidence); //í™•ë¥  ì €ì¥
 
                     }
                 }
             }
         }
 
-        for (int c = 0; c < NUM_CLASSES; c++) //Å¬·¡¼ö °¹¼ö¸¸Å­ ¹İº¹
-            cv::dnn::NMSBoxes(boxes[c], scores[c], 0.7, NMS_THRESHOLD, indices[c]); //ÁöÁ¤ÇÑ È®·ü·Î Á¤º¸ ÇÊÅÍ¸µ
+        for (int c = 0; c < NUM_CLASSES; c++) //í´ë˜ìˆ˜ ê°¯ìˆ˜ë§Œí¼ ë°˜ë³µ
+            cv::dnn::NMSBoxes(boxes[c], scores[c], 0.7, NMS_THRESHOLD, indices[c]); //ì§€ì •í•œ í™•ë¥ ë¡œ ì •ë³´ í•„í„°ë§
 
 
-        for (int c = 0; c < NUM_CLASSES; c++) //Å¬·¡½º ¼ö¸¸Å­ ¹İº¹
+        for (int c = 0; c < NUM_CLASSES; c++) //í´ë˜ìŠ¤ ìˆ˜ë§Œí¼ ë°˜ë³µ
         {
-            for (int i = 0; i < indices[c].size(); ++i) //°ËÃâ °³¼ö¸¸Å­ ¹İº¹
+            for (int i = 0; i < indices[c].size(); ++i) //ê²€ì¶œ ê°œìˆ˜ë§Œí¼ ë°˜ë³µ
             {
-                auto idx = indices[c][i]; //°ËÃâ °´Ã¼ ¹øÈ£ ÀúÀå
-                const auto& rect = boxes[c][idx]; //°ËÃâ °´Ã¼ ¹Ù¿îµù ¹Ú½º ¿µ¿ª ÀúÀå
-                int myarea = rect.area(); //°ËÃâ °´Ã¼ ¹Ù¿îµù ¹Ú½º
-                if (myarea >= 1800 && myarea <= 4000) //¹Ù¿îµù ¹Ú½º ¿µ¿ªÀÌ Á¶°Ç¿¡ ¸ÂÀ¸¸é
+                auto idx = indices[c][i]; //ê²€ì¶œ ê°ì²´ ë²ˆí˜¸ ì €ì¥
+                const auto& rect = boxes[c][idx]; //ê²€ì¶œ ê°ì²´ ë°”ìš´ë”© ë°•ìŠ¤ ì˜ì—­ ì €ì¥
+                int myarea = rect.area(); //ê²€ì¶œ ê°ì²´ ë°”ìš´ë”© ë°•ìŠ¤
+                if (myarea >= 1800 && myarea <= 4000) //ë°”ìš´ë”© ë°•ìŠ¤ ì˜ì—­ì´ ì¡°ê±´ì— ë§ìœ¼ë©´
                 {
-                    cout << "»ç°¢Çü ³ĞÀÌ : " << rect.area() << endl; //Ãâ·Â
-                    change_signal = true; //Â÷¼± º¯°æ on
+                    cout << "ì‚¬ê°í˜• ë„“ì´ : " << rect.area() << endl; //ì¶œë ¥
+                    change_signal = true; //ì°¨ì„  ë³€ê²½ on
                 }
-                else change_signal = false; //¾Æ´Ò½Ã Â÷¼± º¯°æ ½ÅÈ£ off
+                else change_signal = false; //ì•„ë‹ì‹œ ì°¨ì„  ë³€ê²½ ì‹ í˜¸ off
 
             }
         }
@@ -129,42 +129,42 @@ int main()
 
         pt = My_line(dst, prev_pt);
 
-        prev_pt = pt; //ÀÌÀü ¹«°ÔÁß½É¿¡ ÇöÀç ¹«°ÔÁß½É ÀúÀå
+        prev_pt = pt; //ì´ì „ ë¬´ê²Œì¤‘ì‹¬ì— í˜„ì¬ ë¬´ê²Œì¤‘ì‹¬ ì €ì¥
 
-        frame_pt.x = pt.x; //ÇöÀç ¹«°ÔÁß½É ´ëÀÔ
-        frame_pt.y = pt.y + gray.rows * 2 / 3; //ÇöÀç ¹«°ÔÁß½É ´ëÀÔ
+        frame_pt.x = pt.x; //í˜„ì¬ ë¬´ê²Œì¤‘ì‹¬ ëŒ€ì…
+        frame_pt.y = pt.y + gray.rows * 2 / 3; //í˜„ì¬ ë¬´ê²Œì¤‘ì‹¬ ëŒ€ì…
 
-        circle(frame, frame_pt, 2, Scalar(0, 0, 255), 2, -1); //¹«°ÔÁß½É ±×¸®±â
+        circle(frame, frame_pt, 2, Scalar(0, 0, 255), 2, -1); //ë¬´ê²Œì¤‘ì‹¬ ê·¸ë¦¬ê¸°
 
         My_detect_line(side[0], side[1]);
 
         My_change_line(change_signal, prev_pt);
 
         change_signal = false;
-        error = (dst.cols / 2 - pt.x); //¹«°ÔÁß½É Â÷¿¡ ÀÇÇÑ ¿ÀÂ÷
-        cout << "error : " << error << endl; //Ãâ·Â
-        //My_mtr(error);
+        error = (dst.cols / 2 - pt.x); //ë¬´ê²Œì¤‘ì‹¬ ì°¨ì— ì˜í•œ ì˜¤ì°¨
+        cout << "error : " << error << endl; //ì¶œë ¥
+        My_mtr(error);
 
         gettimeofday(&end1, NULL);
         gettimeofday(&start2, NULL);
 
-        for (int c = 0; c < NUM_CLASSES; c++) //Å¬·¡¼ö °¹¼ö¸¸Å­ ¹İº¹
+        for (int c = 0; c < NUM_CLASSES; c++) //í´ë˜ìˆ˜ ê°¯ìˆ˜ë§Œí¼ ë°˜ë³µ
         {
-            for (int i = 0; i < indices[c].size(); ++i) //°ËÃâ °¹¼ö¿¡ µû¶ó ¹İº¹
+            for (int i = 0; i < indices[c].size(); ++i) //ê²€ì¶œ ê°¯ìˆ˜ì— ë”°ë¼ ë°˜ë³µ
             {
-                const auto color = colors[c % NUM_COLORS]; //»ö ÁöÁ¤
+                const auto color = colors[c % NUM_COLORS]; //ìƒ‰ ì§€ì •
 
-                auto idx = indices[c][i]; //°ËÃâ °´Ã¼ ¹øÈ£ ÀúÀå
-                const auto& rect = boxes[c][idx]; //°ËÃâ °´Ã¼ ¹Ù¿îµù ¹Ú½º ¿µ¿ª ÀúÀå
+                auto idx = indices[c][i]; //ê²€ì¶œ ê°ì²´ ë²ˆí˜¸ ì €ì¥
+                const auto& rect = boxes[c][idx]; //ê²€ì¶œ ê°ì²´ ë°”ìš´ë”© ë°•ìŠ¤ ì˜ì—­ ì €ì¥
                 //if(rect.area()>6000) continue;
-                cv::rectangle(frame, cv::Point(rect.x, rect.y), cv::Point(rect.x + rect.width, rect.y + rect.height), color, 3); //È­¸é¿¡ »ç°¢Çü ±×¸®±â
+                cv::rectangle(frame, cv::Point(rect.x, rect.y), cv::Point(rect.x + rect.width, rect.y + rect.height), color, 3); //í™”ë©´ì— ì‚¬ê°í˜• ê·¸ë¦¬ê¸°
 
-                std::string label_str = class_names[c] + ": " + cv::format("%.02lf", scores[c][idx]); //ÀÎ½Ä·üÀ» ÀúÀåÇÒ string °´Ã¼
+                std::string label_str = class_names[c] + ": " + cv::format("%.02lf", scores[c][idx]); //ì¸ì‹ë¥ ì„ ì €ì¥í•  string ê°ì²´
 
-                int baseline; //±ÛÀÚ ±æÀÌ
-                auto label_bg_sz = cv::getTextSize(label_str, cv::FONT_HERSHEY_COMPLEX_SMALL, 1, 1, &baseline); //±ÛÀÚ ±æÀÌ ÀúÀå
-                cv::rectangle(frame, cv::Point(rect.x, rect.y - label_bg_sz.height - baseline - 10), cv::Point(rect.x + label_bg_sz.width, rect.y), color, cv::FILLED); //±ÛÀÚ ÀÔ·Â »ç°¢Çü ±×¸®±â
-                cv::putText(frame, label_str, cv::Point(rect.x, rect.y - baseline - 5), cv::FONT_HERSHEY_COMPLEX_SMALL, 1, cv::Scalar(0, 0, 0)); //±ÛÀÚ ÀÔ·Â
+                int baseline; //ê¸€ì ê¸¸ì´
+                auto label_bg_sz = cv::getTextSize(label_str, cv::FONT_HERSHEY_COMPLEX_SMALL, 1, 1, &baseline); //ê¸€ì ê¸¸ì´ ì €ì¥
+                cv::rectangle(frame, cv::Point(rect.x, rect.y - label_bg_sz.height - baseline - 10), cv::Point(rect.x + label_bg_sz.width, rect.y), color, cv::FILLED); //ê¸€ì ì…ë ¥ ì‚¬ê°í˜• ê·¸ë¦¬ê¸°
+                cv::putText(frame, label_str, cv::Point(rect.x, rect.y - baseline - 5), cv::FONT_HERSHEY_COMPLEX_SMALL, 1, cv::Scalar(0, 0, 0)); //ê¸€ì ì…ë ¥
             }
         }
         // cvtColor(dst, dst, COLOR_GRAY2BGR);
@@ -182,119 +182,119 @@ int main()
         gettimeofday(&end2, NULL);
         if (key == 27) break;
 
-        diff1 = end1.tv_sec + end1.tv_usec / 1000000.0 - start1.tv_sec - start1.tv_usec / 1000000.0; //½Ã°£ ÃøÁ¤
-        diff2 = end2.tv_sec + end2.tv_usec / 1000000.0 - start2.tv_sec - start2.tv_usec / 1000000.0; //½Ã°£ ÃøÁ¤
+        diff1 = end1.tv_sec + end1.tv_usec / 1000000.0 - start1.tv_sec - start1.tv_usec / 1000000.0; //ì‹œê°„ ì¸¡ì •
+        diff2 = end2.tv_sec + end2.tv_usec / 1000000.0 - start2.tv_sec - start2.tv_usec / 1000000.0; //ì‹œê°„ ì¸¡ì •
         cout << "diff1 : " << diff1 << endl;
         cout << "diff2 : " << diff2 << endl;
 
     }
-    //dxl_close();
+    dxl_close();
     return 0;
 }
 
 Mat My_cvtcolor(Mat frame)
 {
-    Mat gray; //º¯¼ö ¼±¾ğ
-    cvtColor(frame, gray, COLOR_BGR2GRAY); //ÇÁ·¹ÀÓ ÇÏ³ª¸¦ ¹Ş¾Æ¿Í GRAY·Î º¯È¯
-    medianBlur(gray, gray, 3); //¹Ìµğ¾ğ ÇÊÅÍ·Î ÇÊÅÍ¸µ
-    threshold(gray, gray, 170, 255, THRESH_BINARY); //ÀÌÁøÈ­
+    Mat gray; //ë³€ìˆ˜ ì„ ì–¸
+    cvtColor(frame, gray, COLOR_BGR2GRAY); //í”„ë ˆì„ í•˜ë‚˜ë¥¼ ë°›ì•„ì™€ GRAYë¡œ ë³€í™˜
+    medianBlur(gray, gray, 3); //ë¯¸ë””ì–¸ í•„í„°ë¡œ í•„í„°ë§
+    threshold(gray, gray, 170, 255, THRESH_BINARY); //ì´ì§„í™”
 
-    return gray; //¹İÈ¯
+    return gray; //ë°˜í™˜
 }
 
 Point2d My_line(Mat dst, Point2d prev)
 {
-    Mat labels, stats, centroids; //º¯¼ö ¼±¾ğ
+    Mat labels, stats, centroids; //ë³€ìˆ˜ ì„ ì–¸
 
-    int cnt = connectedComponentsWithStats(dst, labels, stats, centroids); //·¹ÀÌºí¸µ
-    Point2d pt; //º¯¼ö¼±¾ğ
-    vector<double> vecdou_distance; //º¯¼ö¼±¾ğ
-    double distance; //º¯¼ö¼±¾ğ
-    double* p; //º¯¼ö¼±¾ğ
-    int min_index; //º¯¼ö¼±¾ğ
-    if (cnt > 1) //·¹ÀÌºí¸µ °³¼ö¿¡ µû¶ó
+    int cnt = connectedComponentsWithStats(dst, labels, stats, centroids); //ë ˆì´ë¸”ë§
+    Point2d pt; //ë³€ìˆ˜ì„ ì–¸
+    vector<double> vecdou_distance; //ë³€ìˆ˜ì„ ì–¸
+    double distance; //ë³€ìˆ˜ì„ ì–¸
+    double* p; //ë³€ìˆ˜ì„ ì–¸
+    int min_index; //ë³€ìˆ˜ì„ ì–¸
+    if (cnt > 1) //ë ˆì´ë¸”ë§ ê°œìˆ˜ì— ë”°ë¼
     {
-        for (int i = 1; i < cnt; i++) //¹İº¹¹®
+        for (int i = 1; i < cnt; i++) //ë°˜ë³µë¬¸
         {
-            p = centroids.ptr<double>(i); //¹«°ÔÁß½ÉÀÌ ÀúÀåµÈ ÁÖ¼Ò ÃßÃâ
-            distance = abs(p[0] - prev.x); //xÁÂÇ¥¿Í ÀÌÀü ¹«°ÔÁß½É Â÷ ÀúÀå
-            vecdou_distance.push_back(distance); //vector¿¡ ÀúÀå
+            p = centroids.ptr<double>(i); //ë¬´ê²Œì¤‘ì‹¬ì´ ì €ì¥ëœ ì£¼ì†Œ ì¶”ì¶œ
+            distance = abs(p[0] - prev.x); //xì¢Œí‘œì™€ ì´ì „ ë¬´ê²Œì¤‘ì‹¬ ì°¨ ì €ì¥
+            vecdou_distance.push_back(distance); //vectorì— ì €ì¥
         }
-        min_index = min_element(vecdou_distance.begin(), vecdou_distance.end()) - vecdou_distance.begin(); //±× Áß Â÷°¡ ÃÖ¼ÒÀÎ ÀÎµ¦½º ÀúÀå
-        pt = Point2d(centroids.at<double>(min_index + 1, 0), centroids.at<double>(min_index + 1, 1)); //ÇØ´ç ÀÎµ¦½ºÀÇ ¹«°ÔÁß½É ÀúÀå
-        if (abs(prev.x - pt.x) > 15 && dst.at<uchar>(pt.y, pt.x) != 255) pt = prev; //ÀÌÀü ¹«°Ô Áß½É°ú ÇöÀç ¹«°ÔÁß½ÉÀÇ Â÷°¡ 15º¸´Ù Å©°í ÇöÀç ¹«°ÔÁß½ÉÀÇ ÁÂÇ¥°¡ 0ÀÌ¸é
-        vecdou_distance.clear(); //ÃÊ±âÈ­
+        min_index = min_element(vecdou_distance.begin(), vecdou_distance.end()) - vecdou_distance.begin(); //ê·¸ ì¤‘ ì°¨ê°€ ìµœì†Œì¸ ì¸ë±ìŠ¤ ì €ì¥
+        pt = Point2d(centroids.at<double>(min_index + 1, 0), centroids.at<double>(min_index + 1, 1)); //í•´ë‹¹ ì¸ë±ìŠ¤ì˜ ë¬´ê²Œì¤‘ì‹¬ ì €ì¥
+        if (abs(prev.x - pt.x) > 15 && dst.at<uchar>(pt.y, pt.x) != 255) pt = prev; //ì´ì „ ë¬´ê²Œ ì¤‘ì‹¬ê³¼ í˜„ì¬ ë¬´ê²Œì¤‘ì‹¬ì˜ ì°¨ê°€ 15ë³´ë‹¤ í¬ê³  í˜„ì¬ ë¬´ê²Œì¤‘ì‹¬ì˜ ì¢Œí‘œê°€ 0ì´ë©´
+        vecdou_distance.clear(); //ì´ˆê¸°í™”
     }
-    else pt = prev; //·¹ÀÌºí¸µÀÌ µÈ °ÍÀÌ ¾øÀ¸¸é ÀÌÀü ¹«°ÔÁß½É ÀúÀå
+    else pt = prev; //ë ˆì´ë¸”ë§ì´ ëœ ê²ƒì´ ì—†ìœ¼ë©´ ì´ì „ ë¬´ê²Œì¤‘ì‹¬ ì €ì¥
 
-    return pt; //¹İÈ¯
+    return pt; //ë°˜í™˜
 }
 
 void My_change_line(bool signal, Point2d& prev)
 {
-    if (signal == true) //½ÅÈ£°¡ true¸é
+    if (signal == true) //ì‹ í˜¸ê°€ trueë©´
     {
-        cout << "on_change" << endl; //Ãâ·Â
-        if (spt[0].x == 1000) //¿ŞÂÊÂ÷¼±ÀÌ ¾øÀ» ¶§
+        cout << "on_change" << endl; //ì¶œë ¥
+        if (spt[0].x == 1000) //ì™¼ìª½ì°¨ì„ ì´ ì—†ì„ ë•Œ
         {
-            spt[1].x += 106; //¿À¸¥ÂÊ Â÷¼± xÁÂÇ¥¿¡ 128¸¸Å­ ÆòÇàÀÌµ¿
-            prev = spt[1]; //´ëÀÔ
+            spt[1].x += 106; //ì˜¤ë¥¸ìª½ ì°¨ì„  xì¢Œí‘œì— 128ë§Œí¼ í‰í–‰ì´ë™
+            prev = spt[1]; //ëŒ€ì…
         }
-        else //¿À¸¥ÂÊ Â÷¼±ÀÌ ¾øÀ» ¶§
+        else //ì˜¤ë¥¸ìª½ ì°¨ì„ ì´ ì—†ì„ ë•Œ
         {
-            prev = spt[0]; //¿ŞÂÊ Â÷¼± ¹«°ÔÁß½É ´ëÀÔ
+            prev = spt[0]; //ì™¼ìª½ ì°¨ì„  ë¬´ê²Œì¤‘ì‹¬ ëŒ€ì…
         }
     }
 }
 
 void My_mtr(double error)
 {
-    int L_speed = 60 - error / 3.7; //¼Óµµ´ëÀÔ
-    int R_speed = 60 + error / 3.7; //¼Óµµ´ëÀÔ
-    dxl_set_velocity(L_speed, -R_speed); //¼Óµµ Á¦¾î ÇÔ¼ö
+    int L_speed = 60 - error / 3.7; //ì†ë„ëŒ€ì…
+    int R_speed = 60 + error / 3.7; //ì†ë„ëŒ€ì…
+    dxl_set_velocity(L_speed, -R_speed); //ì†ë„ ì œì–´ í•¨ìˆ˜
 }
 
 void My_detect_line(Mat left, Mat right)
 {
-    Point2d pt[2]; //º¯¼ö ¼±¾ğ
-    int left_index, right_index; //º¯¼ö ¼±¾ğ
-    double left_area, right_area; //º¯¼ö ¼±¾ğ
-    vector<double> left_minarea, right_minarea; //º¯¼ö ¼±¾ğ
-    int left_cnt, right_cnt; //º¯¼ö ¼±¾ğ
-    Mat left_labels, right_labels, left_stats, right_stats, left_centroids, right_centroids; //º¯¼ö ¼±¾ğ
-    left_cnt = connectedComponentsWithStats(left, left_labels, left_stats, left_centroids); //·¹ÀÌºí¸µ
-    right_cnt = connectedComponentsWithStats(right, right_labels, right_stats, right_centroids); //·¹ÀÌºí¸µ
+    Point2d pt[2]; //ë³€ìˆ˜ ì„ ì–¸
+    int left_index, right_index; //ë³€ìˆ˜ ì„ ì–¸
+    double left_area, right_area; //ë³€ìˆ˜ ì„ ì–¸
+    vector<double> left_minarea, right_minarea; //ë³€ìˆ˜ ì„ ì–¸
+    int left_cnt, right_cnt; //ë³€ìˆ˜ ì„ ì–¸
+    Mat left_labels, right_labels, left_stats, right_stats, left_centroids, right_centroids; //ë³€ìˆ˜ ì„ ì–¸
+    left_cnt = connectedComponentsWithStats(left, left_labels, left_stats, left_centroids); //ë ˆì´ë¸”ë§
+    right_cnt = connectedComponentsWithStats(right, right_labels, right_stats, right_centroids); //ë ˆì´ë¸”ë§
 
-    if (left_cnt > 1) { //·¹ÀÌºí¸µ µÈ °´Ã¼°¡ 1°³º¸´Ù ¸¹À¸¸é
-        for (int i = 1; i < left_cnt; i++) { //°´Ã¼ ¼ö¸¸Å­ ¹İº¹
-            int* p1 = left_stats.ptr<int>(i); //°´Ã¼ÀÇ ·¹ÀÌºí¸µ µ¥ÀÌÅÍ ÀúÀå
-            left_area = abs(p1[4]); //¸éÀû ´ëÀÔ
-            left_minarea.push_back(left_area); //º¤ÅÍ¿¡ ÀúÀå
+    if (left_cnt > 1) { //ë ˆì´ë¸”ë§ ëœ ê°ì²´ê°€ 1ê°œë³´ë‹¤ ë§ìœ¼ë©´
+        for (int i = 1; i < left_cnt; i++) { //ê°ì²´ ìˆ˜ë§Œí¼ ë°˜ë³µ
+            int* p1 = left_stats.ptr<int>(i); //ê°ì²´ì˜ ë ˆì´ë¸”ë§ ë°ì´í„° ì €ì¥
+            left_area = abs(p1[4]); //ë©´ì  ëŒ€ì…
+            left_minarea.push_back(left_area); //ë²¡í„°ì— ì €ì¥
         }
-        left_index = max_element(left_minarea.begin(), left_minarea.end()) - left_minarea.begin(); //ÃÖ´ë ¸éÀû °´Ã¼ÀÇ ÁÖ¼Ò¹İÈ¯
-        if (left_stats.ptr<int>(left_index + 1)[4] < 20) //ÃÖ´ë ¸éÀûÀÌ 20º¸´Ù ÀÛÀ¸¸é
-            pt[0] = Point(1000, 1000); //´ëÀÔ
-        else //¾Æ´Ï¶ó¸é
-            pt[0] = Point2d(left_centroids.at<double>(left_index + 1, 0), left_centroids.at<double>(left_index + 1, 1)); //ÇØ´ç °´Ã¼ÀÇ ¹«°ÔÁß½É ´ëÀÔ
-        left_minarea.clear(); //ÃÊ±âÈ­
+        left_index = max_element(left_minarea.begin(), left_minarea.end()) - left_minarea.begin(); //ìµœëŒ€ ë©´ì  ê°ì²´ì˜ ì£¼ì†Œë°˜í™˜
+        if (left_stats.ptr<int>(left_index + 1)[4] < 20) //ìµœëŒ€ ë©´ì ì´ 20ë³´ë‹¤ ì‘ìœ¼ë©´
+            pt[0] = Point(1000, 1000); //ëŒ€ì…
+        else //ì•„ë‹ˆë¼ë©´
+            pt[0] = Point2d(left_centroids.at<double>(left_index + 1, 0), left_centroids.at<double>(left_index + 1, 1)); //í•´ë‹¹ ê°ì²´ì˜ ë¬´ê²Œì¤‘ì‹¬ ëŒ€ì…
+        left_minarea.clear(); //ì´ˆê¸°í™”
     }
-    else pt[0] = Point(1000, 1000); //·¹ÀÌºí¸µÀÌ µÇÁö ¾Ê¾Ò´Ù¸é ´ëÀÔ
+    else pt[0] = Point(1000, 1000); //ë ˆì´ë¸”ë§ì´ ë˜ì§€ ì•Šì•˜ë‹¤ë©´ ëŒ€ì…
 
-    if (right_cnt > 1) { //·¹ÀÌºí¸µ µÈ °´Ã¼°¡ 1°³º¸´Ù ¸¹À¸¸é
-        for (int i = 1; i < right_cnt; i++) { //°´Ã¼ ¼ö¸¸Å­ ¹İº¹
-            int* p1 = right_stats.ptr<int>(i); //°´Ã¼ÀÇ ·¹ÀÌºí¸µ µ¥ÀÌÅÍ ÀúÀå
-            right_area = abs(p1[4]); //¸éÀû ´ëÀÔ
-            right_minarea.push_back(right_area); //º¤ÅÍ¿¡ ÀúÀå
+    if (right_cnt > 1) { //ë ˆì´ë¸”ë§ ëœ ê°ì²´ê°€ 1ê°œë³´ë‹¤ ë§ìœ¼ë©´
+        for (int i = 1; i < right_cnt; i++) { //ê°ì²´ ìˆ˜ë§Œí¼ ë°˜ë³µ
+            int* p1 = right_stats.ptr<int>(i); //ê°ì²´ì˜ ë ˆì´ë¸”ë§ ë°ì´í„° ì €ì¥
+            right_area = abs(p1[4]); //ë©´ì  ëŒ€ì…
+            right_minarea.push_back(right_area); //ë²¡í„°ì— ì €ì¥
         }
-        right_index = max_element(right_minarea.begin(), right_minarea.end()) - right_minarea.begin(); //ÃÖ´ë ¸éÀû °´Ã¼ÀÇ ÁÖ¼Ò ¹İÈ¯
-        if (right_stats.ptr<int>(right_index + 1)[4] < 20) //ÃÖ´ë ¸éÀûÀÌ 20º¸´Ù ÀÛÀ¸¸é
-            pt[1] = Point(1000, 1000); //´ëÀÔ
-        else //¾Æ´Ï¶ó¸é
-            pt[1] = Point2d(right_centroids.at<double>(right_index + 1, 0), right_centroids.at<double>(right_index + 1, 1)); //ÇØ´ç °´Ã¼ ¹«°ÔÁß½É ´ëÀÔ
-        right_minarea.clear(); //ÃÊ±âÈ­
+        right_index = max_element(right_minarea.begin(), right_minarea.end()) - right_minarea.begin(); //ìµœëŒ€ ë©´ì  ê°ì²´ì˜ ì£¼ì†Œ ë°˜í™˜
+        if (right_stats.ptr<int>(right_index + 1)[4] < 20) //ìµœëŒ€ ë©´ì ì´ 20ë³´ë‹¤ ì‘ìœ¼ë©´
+            pt[1] = Point(1000, 1000); //ëŒ€ì…
+        else //ì•„ë‹ˆë¼ë©´
+            pt[1] = Point2d(right_centroids.at<double>(right_index + 1, 0), right_centroids.at<double>(right_index + 1, 1)); //í•´ë‹¹ ê°ì²´ ë¬´ê²Œì¤‘ì‹¬ ëŒ€ì…
+        right_minarea.clear(); //ì´ˆê¸°í™”
     }
-    else pt[1] = Point(1000, 1000); //·¹ÀÌºí¸µÀÌ µÇÁö ¾Ê¾Ò´Ù¸é ´ëÀÔ
+    else pt[1] = Point(1000, 1000); //ë ˆì´ë¸”ë§ì´ ë˜ì§€ ì•Šì•˜ë‹¤ë©´ ëŒ€ì…
 
-    spt[0] = pt[0]; //´ëÀÔ
-    spt[1] = pt[1]; //´ëÀÔ
+    spt[0] = pt[0]; //ëŒ€ì…
+    spt[1] = pt[1]; //ëŒ€ì…
 }
